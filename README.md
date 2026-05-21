@@ -1,59 +1,76 @@
 # 河北水利电力学院招生 AI 问答系统
 
-轻量、极速、免登录的高校招生 AI 问答系统，面向 **河北水利电力学院** 招生咨询场景。项目采用前后端分离架构：后端使用 FastAPI 对接 OpenAI 兼容模型接口，前端使用 Vite + React 构建 Gemini 风格的流式聊天界面。
+这是我为 **河北水利电力学院招生咨询场景** 做的一套轻量 AI 问答系统。我的目标很明确：让考生和家长打开页面后，不需要注册、不需要学习复杂操作，就能直接围绕招生政策、专业介绍、校园生活、报到入学等问题进行咨询。
 
-## 功能概览
+整个项目采用前后端分离架构。后端负责模型调用、主备模型切换、Agent 提示词加载和学校官方资料检索；前端负责聊天交互、流式渲染、移动端适配和学校品牌视觉呈现。
 
-- **免登录使用**：用户打开网页即可咨询，不需要注册账号。
-- **单会话聊天**：对话历史保存在浏览器本地会话中，不依赖数据库。
-- **SSE 流式输出**：AI 回复逐步渲染，降低等待感。
-- **主备模型容灾**：主模型失败时自动切换备用模型。
-- **Agent 提示词热读**：后端每次请求读取根目录 `agent.md`，便于快速调整助手边界和口吻。
-- **联网官方检索**：招生、专业、校园等问题会优先检索学校官方域名资料，并在页面显示“联网搜索中”。
-- **移动端适配**：PC 与手机均保持问答式布局。
+## 项目亮点
+
+- **打开即用**：没有登录注册流程，适合招生咨询这种高频、轻量、即时的使用场景。
+- **回答更贴近学校业务**：根目录的 `agent.md` 统一约束助手身份、回答范围、语气和安全边界。
+- **支持 OpenAI 兼容接口**：只要服务商兼容 `/chat/completions`，就可以在后端配置中切换。
+- **主备模型自动容灾**：主模型不可用时，后端会尝试备用模型，减少咨询中断。
+- **流式问答体验**：前端按流式内容逐步渲染，用户不需要一直等待整段回答生成完。
+- **学校官方资料优先**：遇到专业、招生、校园相关问题时，后端会优先检索学校官方域名下的公开资料。
+- **移动端友好**：手机端仍保留左问右答的聊天结构，适合考生直接在手机上使用。
+- **无数据库依赖**：对话仅保存在浏览器会话中，部署和维护成本更低。
+
+## 技术栈
+
+| 模块 | 技术 |
+| --- | --- |
+| 后端 | Python、FastAPI、httpx、SSE |
+| 前端 | Vite、React、TypeScript |
+| 富文本渲染 | react-markdown、remark-gfm |
+| 图标 | lucide-react |
+| 模型接口 | OpenAI 兼容格式 |
 
 ## 项目结构
 
 ```text
 stubox/
-├─ agent.md                         # AI 助手系统提示词，可直接修改
+├─ agent.md                         # 招生 AI 助手的系统提示词
 ├─ README.md
 ├─ docs/
-│  ├─ PRD.md
-│  ├─ TECHNICAL_DESIGN.md
-│  └─ AGENT.md
+│  ├─ PRD.md                        # 产品需求文档
+│  ├─ TECHNICAL_DESIGN.md           # 技术设计文档
+│  └─ AGENT.md                      # 项目开发规范
 ├─ backend/
-│  ├─ .env                          # 后端运行配置，模型和密钥在这里改
-│  ├─ .env.example                  # 配置模板
+│  ├─ .env                          # 本地后端配置，默认不进入版本库
+│  ├─ .env.example                  # 后端配置模板
 │  ├─ requirements.txt
 │  └─ app/
-│     ├─ main.py                    # FastAPI 入口与 SSE 路由
-│     ├─ config.py                  # 环境变量读取
-│     ├─ schemas.py                 # 请求数据结构
-│     ├─ agent_prompt.py            # agent.md 加载逻辑
-│     ├─ openai_client.py           # OpenAI 兼容流式调用与主备切换
-│     └─ web_search.py              # 官方站点联网检索
+│     ├─ main.py                    # FastAPI 入口和流式接口
+│     ├─ config.py                  # 配置读取
+│     ├─ schemas.py                 # 请求结构
+│     ├─ agent_prompt.py            # agent.md 加载
+│     ├─ openai_client.py           # 模型调用与主备切换
+│     └─ web_search.py              # 学校官方资料检索
 └─ fronted/
-   ├─ imgs/                         # 学校 logo、校名图等素材
+   ├─ imgs/                         # 校徽、校名、参考图等素材
    ├─ public/
    ├─ src/
-   │  ├─ App.tsx                    # 前端主状态与流式事件处理
-   │  ├─ components/                # 聊天、侧栏、输入框、富文本组件
-   │  ├─ lib/                       # stream/storage 等工具
-   │  └─ styles.css                 # 全局 UI 样式
+   │  ├─ App.tsx                    # 页面主逻辑
+   │  ├─ components/                # 侧边栏、消息列表、输入框等组件
+   │  ├─ lib/                       # 流式请求、本地会话存储
+   │  └─ styles.css                 # 页面样式
    ├─ package.json
-   └─ vite.config.ts                # 本地开发代理配置
+   └─ vite.config.ts                # 本地开发代理
 ```
 
-## 环境要求
+## 快速开始
 
-- Python 3.10+
-- Node.js 18+
-- npm 9+
+### 环境准备
 
-## 后端配置
+建议使用：
 
-复制配置模板。
+- Python 3.10 或更高版本
+- Node.js 18 或更高版本
+- npm 9 或更高版本
+
+### 1. 配置后端
+
+先复制一份后端配置模板。
 
 Windows PowerShell：
 
@@ -68,11 +85,7 @@ macOS / Linux：
 cp backend/.env.example backend/.env
 ```
 
-然后编辑 `backend/.env`。
-
-### 在哪里修改模型
-
-主模型和备用模型都在 [backend/.env](backend/.env) 中修改：
+然后打开 `backend/.env`，填写模型服务商信息：
 
 ```env
 OPENAI_BASE_URL=https://api.deepseek.com
@@ -82,45 +95,9 @@ PRIMARY_MODEL=deepseek-v4-flash
 BACKUP_MODEL=deepseek-v4-pro
 ```
 
-说明：
+这里我把模型相关配置都放在后端，是为了让前端只负责使用体验，不接触服务商密钥。
 
-- `OPENAI_BASE_URL`：OpenAI 兼容接口地址，例如 `https://api.openai.com/v1` 或 `https://api.deepseek.com`。
-- `OPENAI_API_KEY`：模型服务商密钥，只放在后端，不会暴露给前端。
-- `PRIMARY_MODEL`：默认优先调用的主模型。
-- `BACKUP_MODEL`：主模型超时、限流、4xx/5xx 或流式失败前无输出时自动切换的备用模型。
-- `MODEL_REASONING_EFFORT`：模型支持时可调思考强度；不需要时留空。
-- `MAX_COMPLETION_TOKENS`：限制单次回复最大长度。
-
-### 联网搜索配置
-
-联网搜索也在 [backend/.env](backend/.env) 中控制：
-
-```env
-WEB_SEARCH_ENABLED=true
-WEB_SEARCH_PROVIDER=bing
-WEB_SEARCH_OFFICIAL_DOMAINS=hbwe.edu.cn,zsb.hbwe.edu.cn
-WEB_SEARCH_MAX_RESULTS=4
-WEB_SEARCH_TIMEOUT_SECONDS=8
-WEB_FETCH_TIMEOUT_SECONDS=9
-```
-
-默认只检索学校官方域名，避免混入论坛、百科、自媒体等不可靠来源。
-
-### 在哪里修改 Agent 提示词
-
-系统提示词在项目根目录的 [agent.md](agent.md)。
-
-后端会在每次请求时读取它，因此修改后通常不需要重新构建前端。你可以在这里调整：
-
-- 助手身份与回答边界
-- 是否只回答招生相关问题
-- 输出格式和语气
-- 联网资料引用规则
-- 禁止展示思考过程等安全约束
-
-## 本地运行
-
-### 1. 启动后端
+### 2. 启动后端
 
 ```bash
 cd backend
@@ -130,13 +107,15 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-健康检查：
+启动后可以访问：
 
-```bash
-curl http://127.0.0.1:8000/health
+```text
+http://127.0.0.1:8000/health
 ```
 
-### 2. 启动前端
+如果返回 `ok: true`，说明后端已经正常运行。
+
+### 3. 启动前端
 
 另开一个终端：
 
@@ -146,13 +125,103 @@ npm install
 npm run dev
 ```
 
-访问：
+浏览器打开：
 
 ```text
 http://127.0.0.1:5173/
 ```
 
-本地开发时，`fronted/vite.config.ts` 会把 `/api` 和 `/health` 代理到 `http://127.0.0.1:8000`。
+本地开发时，Vite 会把 `/api` 和 `/health` 转发到后端服务。
+
+## 使用教程
+
+进入页面后可以直接输入招生相关问题，例如：
+
+- 学校今年有哪些招生专业？
+- 某个专业主要学什么？
+- 学校住宿和校园生活怎么样？
+- 新生报到一般需要关注哪些事项？
+
+左侧导航栏里也提供了常用咨询入口，可以快速发起招生政策、专业介绍、校园生活、报到入学等主题咨询。
+
+如果要清空当前对话，可以点击“开始新咨询”。当前项目没有做账号体系和数据库存储，因此刷新或开启新会话后，对话数据不会作为长期记录保存在服务器上。
+
+## 常用配置位置
+
+### 修改主模型和备用模型
+
+文件位置：
+
+```text
+backend/.env
+```
+
+配置项：
+
+```env
+PRIMARY_MODEL=deepseek-v4-flash
+BACKUP_MODEL=deepseek-v4-pro
+```
+
+主模型会优先使用；如果主模型请求失败，后端会尝试备用模型。
+
+### 修改模型服务商地址和密钥
+
+文件位置：
+
+```text
+backend/.env
+```
+
+配置项：
+
+```env
+OPENAI_BASE_URL=https://api.deepseek.com
+OPENAI_API_KEY=sk-your-api-key
+```
+
+如果服务商要求 `/v1` 后缀，就把它保留在 `OPENAI_BASE_URL` 中。
+
+### 修改 Agent 提示词
+
+文件位置：
+
+```text
+agent.md
+```
+
+我把招生助手的身份、回答边界、语气、安全规则和资料引用要求都放在这里。后端会在请求时读取这个文件，所以调整提示词后，一般不需要重新打包前端。
+
+### 修改联网检索范围
+
+文件位置：
+
+```text
+backend/.env
+```
+
+配置项：
+
+```env
+WEB_SEARCH_ENABLED=true
+WEB_SEARCH_PROVIDER=bing
+WEB_SEARCH_OFFICIAL_DOMAINS=hbwe.edu.cn,zsb.hbwe.edu.cn
+WEB_SEARCH_MAX_RESULTS=4
+```
+
+默认只检索学校相关官方域名，这样更适合招生咨询场景。
+
+### 修改前端界面
+
+常用文件：
+
+```text
+fronted/src/App.tsx
+fronted/src/styles.css
+fronted/src/components/
+```
+
+其中 `styles.css` 负责主要视觉样式，`App.tsx` 负责聊天状态、流式事件和主题咨询入口。
 
 ## 生产构建
 
@@ -164,13 +233,13 @@ npm install
 npm run build
 ```
 
-构建产物位于：
+构建完成后，静态文件会生成在：
 
 ```text
 fronted/dist/
 ```
 
-后端安装依赖并启动：
+后端生产启动示例：
 
 ```bash
 cd backend
@@ -180,19 +249,19 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Windows 服务器可将 `source .venv/bin/activate` 替换为：
+Windows 服务器可以使用：
 
 ```powershell
 .\.venv\Scripts\activate
 ```
 
-## 部署建议
+## 部署方式
 
-推荐部署方式：
+我推荐的部署方式是：
 
-1. 使用 Nginx 或同类 Web 服务器托管 `fronted/dist/`。
-2. 使用 `systemd`、Supervisor、PM2 或 Windows 服务管理后端 FastAPI 进程。
-3. 将前端同域名下的 `/api/*` 和 `/health` 反向代理到后端 `127.0.0.1:8000`。
+1. 前端静态文件交给 Nginx 托管。
+2. 后端 FastAPI 使用 `systemd`、Supervisor、PM2 或 Windows 服务常驻运行。
+3. Nginx 把 `/api/` 和 `/health` 反向代理到后端。
 
 Nginx 示例：
 
@@ -224,29 +293,22 @@ server {
 }
 ```
 
-如果前端和后端不同域名部署，需要在 `backend/.env` 中配置：
+如果前后端分开部署，需要在后端配置允许的前端域名：
 
 ```env
 CORS_ORIGINS=https://your-frontend-domain.com
 ```
 
-## 常用维护点
+## 开发与维护建议
 
-| 需求 | 修改位置 |
-| --- | --- |
-| 更换 API 服务商地址 | `backend/.env` 的 `OPENAI_BASE_URL` |
-| 更换 API Key | `backend/.env` 的 `OPENAI_API_KEY` |
-| 更换主模型 | `backend/.env` 的 `PRIMARY_MODEL` |
-| 更换备用模型 | `backend/.env` 的 `BACKUP_MODEL` |
-| 调整助手身份、边界和语气 | 根目录 `agent.md` |
-| 开关联网搜索 | `backend/.env` 的 `WEB_SEARCH_ENABLED` |
-| 调整官方检索域名 | `backend/.env` 的 `WEB_SEARCH_OFFICIAL_DOMAINS` |
-| 修改前端视觉样式 | `fronted/src/styles.css` |
-| 修改聊天状态逻辑 | `fronted/src/App.tsx` |
+- `.env` 用来放本机或服务器上的运行配置，仓库中只保留 `.env.example` 作为模板。
+- 招生政策、分数线、计划数、学费、报到时间等内容变化较快，回答时应以学校当年公开信息为准。
+- 当前项目为了保持轻量，没有接入数据库；如果后续要做多会话、后台管理或数据分析，可以单独扩展存储层。
+- 生产环境代理 `/api/` 时建议关闭缓冲，让流式响应保持顺畅。
 
-## 注意事项
+## 我后续想继续完善的方向
 
-- 不要把真实 `OPENAI_API_KEY` 提交到公开仓库。
-- 涉及招生政策、分数线、计划数、学费、报到时间等时效信息时，应以学校官网、招生信息网和当年官方通知为准。
-- 当前项目不使用数据库；如果后续需要多会话、用户账号或后台管理，需要另行设计存储层。
-- SSE 流式响应对代理配置敏感，生产环境务必关闭 `/api/` 的代理缓冲。
+- 增加后台可视化配置页，方便非开发人员调整提示词和模型。
+- 增加更细粒度的学校官方知识库索引。
+- 加入回答引用来源的可视化展示。
+- 补充更多移动端交互细节，让咨询体验更接近原生应用。
